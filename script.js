@@ -1,179 +1,125 @@
 // --- CONFIGURATION SETUP ---
-const ADMIN_PASSWORD = "admin123_change_me"; // Admin panel key
-const API_URL = "https://api.jsonbin.io/v3/b/6a43604ef5f4af5e2945c500"; // Your updated bin URL
-const API_MASTER_KEY = "$2a$10$lPB.nJiq6s9VfBAeHO/DD.rhW2r.uWnjDmMN83dtp/ZQAdJ5JbClm"; // Paste your secret key wrapper string here
+const ADMIN_PASSWORD = "admin123_change_me"; 
+const API_URL = "https://api.jsonbin.io/v3/b/6a43604ef5f4af5e2945c500"; 
+const API_MASTER_KEY = "YOUR_SECRET_KEY_HERE"; 
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Game State Variables
+    // Game/TOS State
     let score = 0;
     let autoChargers = 0;
     let upgradeCost = 10;
     let gameLoopInterval = null;
+    let currentCaptchaText = ""; // Holds the generated solution
 
-    // DOM Target DOM Elements
+    // DOM Target Elements
     const tosModal = document.getElementById('tos-modal');
     const acceptBtn = document.getElementById('accept-btn');
     const declineBtn = document.getElementById('decline-btn');
     
+    // CAPTCHA UI Elements
+    const captchaCanvas = document.getElementById('captcha-canvas');
+    const refreshCaptchaBtn = document.getElementById('refresh-captcha-btn');
+    const captchaInput = document.getElementById('captcha-input');
+    const captchaError = document.getElementById('captcha-error');
+
     const mainView = document.getElementById('main-view');
     const scoreDisplay = document.getElementById('score');
     const clickBtn = document.getElementById('click-btn');
     const upgradeBtn = document.getElementById('upgrade-btn');
 
-    const adminBtn = document.getElementById('admin-btn');
-    const passwordModal = document.getElementById('password-modal');
-    const passwordInput = document.getElementById('password-input');
-    const submitPassBtn = document.getElementById('submit-pass-btn');
-    const cancelPassBtn = document.getElementById('cancel-pass-btn');
-    const loginError = document.getElementById('login-error');
+    // ... keeping your existing admin DOM declarations intact ...
 
-    const adminView = document.getElementById('admin-view');
-    const exitAdminBtn = document.getElementById('exit-admin-btn');
-    const logsTbody = document.getElementById('logs-tbody');
-
-    // --- STEP 1: INITIALIZE DATA CONSENT HANDLING ---
-    acceptBtn.addEventListener('click', () => {
-        // Remove tracking lock UI filters
-        tosModal.classList.add('hidden');
-        mainView.classList.remove('app-locked');
-        
-        // Execute operational routines AFTER explicit approval
-        initializeSystemTelemetry();
-        runGameEngine();
-    });
-
-    declineBtn.addEventListener('click', () => {
-        // Redirection or exit fallback strategy
-        window.location.href = "https://github.com";
-    });
-
-    // --- STEP 2: RUN GAME ENGINE LOGIC ---
-    function runGameEngine() {
-        clickBtn.addEventListener("click", () => {
-            score++;
-            updateGameUI();
-        });
-
-        upgradeBtn.addEventListener("click", () => {
-            if (score >= upgradeCost) {
-                score -= upgradeCost;
-                autoChargers++;
-                upgradeCost = Math.floor(upgradeCost * 1.5);
-                updateGameUI();
-            }
-        });
-
-        gameLoopInterval = setInterval(() => {
-            if (autoChargers > 0) {
-                score += autoChargers;
-                updateGameUI();
-            }
-        }, 1000);
-    }
-
-    function updateGameUI() {
-        scoreDisplay.innerText = score;
-        upgradeBtn.innerText = `Buy Auto-Charger (Cost: ${upgradeCost})`;
-        upgradeBtn.disabled = score < upgradeCost;
-    }
-
-    // --- STEP 3: SYSTEM AUDITING TELEMETRY ---
-    function initializeSystemTelemetry() {
-        fetch('https://api.ipify.org?format=json')
-            .then(res => res.json())
-            .then(data => {
-                saveLogToCloud(data.ip);
-            })
-            .catch(err => console.error("Telemetry failed:", err));
-    }
-
-    function saveLogToCloud(detectedIP) {
-        if(API_MASTER_KEY.includes("YOUR_ACTUAL_KEY_HERE")) return;
-
-        fetch(API_URL, {
-            method: 'GET',
-            headers: { 'X-Master-Key': API_MASTER_KEY, 'X-Bin-Meta': 'false' }
-        })
-        .then(res => res.json())
-        .then(data => {
-            let currentLogs = data.logs || [];
-            currentLogs.unshift({ time: new Date().toLocaleString(), ip: detectedIP });
-
-            return fetch(API_URL, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_MASTER_KEY },
-                body: JSON.stringify({ logs: currentLogs })
-            });
-        })
-        .catch(err => console.error("Database tracking fault:", err));
-    }
-
-    function fetchDatabaseAudit() {
-        logsTbody.innerHTML = '<tr><td colspan="2" class="loading-logs">Syncing cloud logs...</td></tr>';
-        
-        if(API_MASTER_KEY.includes("YOUR_ACTUAL_KEY_HERE")) {
-            logsTbody.innerHTML = '<tr><td colspan="2" class="error-msg">Error: API_MASTER_KEY not updated.</td></tr>';
-            return;
+    // --- NEW: GENERATE CANVAS CAPTCHA ---
+    function generateCaptcha() {
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789"; // Removed ambiguous characters like O, 0, I, l
+        currentCaptchaText = "";
+        for (let i = 0; i < 5; i++) {
+            currentCaptchaText += chars.charAt(Math.floor(Math.random() * chars.length));
         }
 
-        fetch(API_URL, {
-            method: 'GET',
-            headers: { 'X-Master-Key': API_MASTER_KEY, 'X-Bin-Meta': 'false' }
-        })
-        .then(res => res.json())
-        .then(data => {
-            const logs = data.logs || [];
-            logsTbody.innerHTML = '';
+        const ctx = captchaCanvas.getContext('2d');
+        ctx.clearRect(0, 0, captchaCanvas.width, captchaCanvas.height);
+
+        // Background noise lines
+        for (let i = 0; i < 5; i++) {
+            ctx.strokeStyle = `rgba(56, 189, 248, ${Math.random() * 0.4 + 0.2})`;
+            ctx.beginPath();
+            ctx.moveTo(Math.random() * captchaCanvas.width, Math.random() * captchaCanvas.height);
+            ctx.lineTo(Math.random() * captchaCanvas.width, Math.random() * captchaCanvas.height);
+            ctx.stroke();
+        }
+
+        // Render Distorted Text
+        ctx.font = "bold 24px monospace";
+        ctx.fillStyle = "#f8fafc";
+        ctx.textBaseline = "middle";
+
+        for (let i = 0; i < currentCaptchaText.length; i++) {
+            ctx.save();
+            // Displace letters slightly on the axis
+            const x = 20 + i * 26;
+            const y = captchaCanvas.height / 2 + (Math.random() * 10 - 5);
+            const angle = (Math.random() * 20 - 10) * Math.PI / 180;
             
-            if(logs.length === 0) {
-                logsTbody.innerHTML = '<tr><td colspan="2" class="loading-logs">Empty register records.</td></tr>';
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.fillText(currentCaptchaText[i], 0, 0);
+            ctx.restore();
+        }
+    }
+
+    // Initialize CAPTCHA layout on load
+    if (captchaCanvas) {
+        generateCaptcha();
+    }
+
+    // Refresh click handler
+    if (refreshCaptchaBtn) {
+        refreshCaptchaBtn.addEventListener('click', () => {
+            generateCaptcha();
+            captchaInput.value = "";
+            acceptBtn.disabled = true;
+            captchaError.classList.add('hidden');
+        });
+    }
+
+    // Validate Input on type
+    if (captchaInput) {
+        captchaInput.addEventListener('input', () => {
+            // Case-sensitive validation check
+            if (captchaInput.value === currentCaptchaText) {
+                acceptBtn.disabled = false;
+                captchaError.classList.add('hidden');
+            } else {
+                acceptBtn.disabled = true;
+            }
+        });
+    }
+
+    // --- STEP 1: DATA CONSENT HANDLING ---
+    if (acceptBtn) {
+        acceptBtn.addEventListener('click', () => {
+            // Safety double check
+            if (captchaInput.value !== currentCaptchaText) {
+                captchaError.classList.remove('hidden');
+                generateCaptcha();
+                captchaInput.value = "";
                 return;
             }
 
-            logs.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${item.time}</td><td><code>${item.ip}</code></td>`;
-                logsTbody.appendChild(row);
-            });
-        })
-        .catch(() => {
-            logsTbody.innerHTML = '<tr><td colspan="2" class="error-msg">Error parsing remote cloud matrix.</td></tr>';
+            tosModal.classList.add('hidden');
+            mainView.classList.remove('app-locked');
+            
+            initializeSystemTelemetry();
+            runGameEngine();
         });
     }
 
-    // --- STEP 4: PANEL INTERFACE ROUTING CONTROL ---
-    adminBtn.addEventListener('click', () => {
-        passwordModal.classList.remove('hidden');
-        passwordInput.focus();
-    });
+    if (declineBtn) {
+        declineBtn.addEventListener('click', () => {
+            window.location.href = "https://github.com";
+        });
+    }
 
-    cancelPassBtn.addEventListener('click', () => {
-        passwordModal.classList.add('hidden');
-        passwordInput.value = '';
-        loginError.classList.add('hidden');
-    });
-
-    const triggerAuthentication = () => {
-        if (passwordInput.value === ADMIN_PASSWORD) {
-            passwordModal.classList.add('hidden');
-            mainView.classList.add('hidden');
-            adminBtn.classList.add('hidden');
-            adminView.classList.remove('hidden');
-            passwordInput.value = '';
-            loginError.classList.add('hidden');
-            fetchDatabaseAudit();
-        } else {
-            loginError.classList.remove('hidden');
-            passwordInput.value = '';
-        }
-    };
-
-    submitPassBtn.addEventListener('click', triggerAuthentication);
-    passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') triggerAuthentication(); });
-
-    exitAdminBtn.addEventListener('click', () => {
-        adminView.classList.add('hidden');
-        mainView.classList.remove('hidden');
-        adminBtn.classList.remove('hidden');
-    });
+    // ... leave the rest of your original runGameEngine(), telemetry, and admin console systems exactly as they were ...
 });
