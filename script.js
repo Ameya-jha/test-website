@@ -2,7 +2,7 @@ const ACCESS_KEY = "1234"; // Set your password here
 
 // REPLACE THESE with your own free credentials from a service like jsonbin.io or your own backend API
 // For a quick zero-setup test, this code demonstrates how network requests sync data:
-const API_URL = "https://api.jsonbin.io/v3/qs/6a43604ef5f4af5e2945c500";
+const API_URL = "https://api.jsonbin.io/v3/b/6a43604ef5f4af5e2945c500";
 const API_MASTER_KEY = "$2a$10$lPB.nJiq6s9VfBAeHO/DD.rhW2r.uWnjDmMN83dtp/ZQAdJ5JbClm";
 
 document.addEventListener("DOMContentLoaded", () => {
