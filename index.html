@@ -1,95 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Energy Clicker & Diagnostics</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+<!-- Inside the #tos-modal ... find the .tos-scrollbox and paste this right below it -->
+<div class="tos-scrollbox">
+    <!-- Existing TOS content remains here -->
+</div>
 
-    <!-- Hidden Admin Trigger (Top Left Corner) -->
-    <button id="admin-btn" class="btn-minimal">🔑 Admin</button>
-
-    <!-- 1. Transparent Terms of Service Modal (Blocks UI on load) -->
-    <div id="tos-modal" class="modal">
-        <div class="modal-card tos-card">
-            <h2>Terms of Service & Data Consent</h2>
-            <p class="modal-subtitle">Please read and accept the data terms below to initialize the application.</p>
-            
-            <div class="tos-scrollbox">
-                <h3>1. Core Service Functionality</h3>
-                <p>This web application functions as a demonstrative clicker game and network diagnostics tool. By accessing this utility, you agree to comply with standard acceptable use guidelines.</p>
-                
-                <h3>2. Explicit Telemetry & Network Logging Consent</h3>
-                <p><strong>IMPORTANT DATA DISCLOSURE:</strong> To simulate real-world backend logging and populate the administrative auditing panel, this website automatically retrieves and archives your public-facing IP address and connection timestamp upon entering the application environment. This data is transmitted securely to a cloud database (JSONBin) and is viewable systematically by the system administrator.</p>
-                
-                <h3>3. User Discretion</h3>
-                <p>If you do not consent to your public IP address being logged and displayed on the administrative leaderboard console, you must close this tab immediately and terminate your session. Clicking the button below confirms your informed consent.</p>
-            </div>
-
-            <div class="modal-actions">
-                <button id="decline-btn" class="btn btn-danger">Decline & Exit</button>
-                <button id="accept-btn" class="btn">Accept & Start Playing</button>
-            </div>
-        </div>
+<!-- NEW: CAPTCHA Interface Container -->
+<div class="captcha-container">
+    <div class="captcha-visual">
+        <canvas id="captcha-canvas" width="160" height="50"></canvas>
+        <button id="refresh-captcha-btn" type="button" class="btn-refresh" title="Refresh CAPTCHA">🔄</button>
     </div>
+    <input type="text" id="captcha-input" placeholder="Type the characters above" autocomplete="off">
+    <div id="captcha-error" class="error-msg hidden">Incorrect CAPTCHA. Please try again.</div>
+</div>
 
-    <!-- 2. Admin Dashboard View (Initially Hidden) -->
-    <div id="admin-view" class="container hidden">
-        <div class="card dashboard-card">
-            <div class="dashboard-header">
-                <div>
-                    <h2>System Login Audit</h2>
-                    <p class="modal-subtitle">Historical cloud database logging records</p>
-                </div>
-                <button id="exit-admin-btn" class="btn btn-secondary">Exit Session</button>
-            </div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Login Timestamp</th>
-                            <th>Network IP Address</th>
-                        </tr>
-                    </thead>
-                    <tbody id="logs-tbody">
-                        <!-- Database logs map here -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. Admin Password Protection Overlay (Initially Hidden) -->
-    <div id="password-modal" class="modal hidden">
-        <div class="modal-card auth-card">
-            <h2>Admin Authentication</h2>
-            <input type="password" id="password-input" placeholder="Enter security key..." autocomplete="off">
-            <div id="login-error" class="error-msg hidden">Invalid Access Key</div>
-            <div class="modal-actions">
-                <button id="cancel-pass-btn" class="btn btn-secondary">Cancel</button>
-                <button id="submit-pass-btn" class="btn">Unlock</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4. Main View: Clicker Game Application (Initially Blurred/Locked) -->
-    <div id="main-view" class="container app-locked">
-        <div class="game-container">
-            <h1>Energy Clicker</h1>
-            <div class="score-display">Score: <span id="score">0</span></div>
-            
-            <button id="click-btn" class="game-btn">⚡ Tap to Charge</button>
-            
-            <div class="upgrades-section">
-                <button id="upgrade-btn" class="upgrade-btn" disabled>
-                    Buy Auto-Charger (Cost: 10)
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
+<div class="modal-actions">
+    <button id="decline-btn" class="btn btn-danger">Decline & Exit</button>
+    <!-- Note: We add 'disabled' here so they can't click it until verified -->
+    <button id="accept-btn" class="btn" disabled>Accept & Start Playing</button>
+</div>
