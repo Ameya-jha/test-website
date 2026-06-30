@@ -1,14 +1,12 @@
-// configuration setup
-const ADMIN_PASSWORD = "admin123_change_me"; // <-- Change your password placeholder here!
+const ACCESS_KEY = "admin123_change_me"; // Set your password here
 
-// Simulated fallback local database since GitHub has no real server backend
-let mockDatabase = [
-    { timestamp: new Date(Date.now() - 600000).toLocaleString(), ip: "192.168.1.45" },
-    { timestamp: new Date(Date.now() - 300000).toLocaleString(), ip: "103.45.201.12" }
+// Systematic mock collection tracking past records
+let trackedLogins = [
+    { time: "2026-06-30, 11:15:22 AM", ip: "157.45.22.101" },
+    { time: "2026-06-30, 10:42:05 AM", ip: "192.168.1.1" }
 ];
 
 document.addEventListener("DOMContentLoaded", () => {
-    // UI Elements
     const ipElement = document.getElementById('ip');
     const adminBtn = document.getElementById('admin-btn');
     const passwordModal = document.getElementById('password-modal');
@@ -22,52 +20,35 @@ document.addEventListener("DOMContentLoaded", () => {
     const backBtn = document.getElementById('back-btn');
     const logsTbody = document.getElementById('logs-tbody');
 
-    // 1. Fetch current visitor's IP address
+    // Fetch and dynamically log user IP address
     fetch('https://api.ipify.org?format=json')
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
             ipElement.innerText = data.ip;
             ipElement.classList.remove('loading');
-
-            // Log current IP address
-            saveVisitorIP(data.ip);
+            logCurrentVisit(data.ip);
         })
-        .catch(error => {
+        .catch(() => {
             ipElement.innerText = "Unavailable";
             ipElement.classList.remove('loading');
-            console.error('IP fetch error:', error);
         });
 
-    // 2. Logic to log/store IP addresses
-    function saveVisitorIP(detectedIP) {
-        const timestamp = new Date().toLocaleString();
-        
-        // Push to local temporary array for demonstration
-        mockDatabase.unshift({ timestamp, ip: detectedIP });
-
-        /* 
-           PRODUCTION LOGGING TIP:
-           Because GitHub Pages is a static server, to permanently log these IPs you must 
-           send a POST request here to an external endpoint, for example:
-           
-           fetch('https://your-api-endpoint.com/logs', {
-               method: 'POST',
-               body: JSON.stringify({ ip: detectedIP })
-           });
-        */
+    function logCurrentVisit(ipAddress) {
+        const time = new Date().toLocaleString();
+        // Insert new systematic login at the beginning of the logging structure
+        trackedLogins.unshift({ time, ip: ipAddress });
     }
 
-    // 3. Render Dashboard Tables 
-    function renderLogs() {
+    function buildSystematicDashboard() {
         logsTbody.innerHTML = '';
-        mockDatabase.forEach(log => {
+        trackedLogins.forEach(entry => {
             const row = document.createElement('tr');
-            row.innerHTML = `<td>${log.timestamp}</td><td><strong>${log.ip}</strong></td>`;
+            row.innerHTML = `<td>${entry.time}</td><td><code>${entry.ip}</code></td>`;
             logsTbody.appendChild(row);
         });
     }
 
-    // 4. Modal Event Handlers
+    // View Switching Mechanics
     adminBtn.addEventListener('click', () => {
         passwordModal.classList.remove('hidden');
         passwordInput.focus();
@@ -79,27 +60,27 @@ document.addEventListener("DOMContentLoaded", () => {
         loginError.classList.add('hidden');
     });
 
-    submitPassBtn.addEventListener('click', handleAuth);
-    passwordInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleAuth();
-    });
-
-    function handleAuth() {
-        if (passwordInput.value === ADMIN_PASSWORD) {
+    const verifyCredentials = () => {
+        if (passwordInput.value === ACCESS_KEY) {
             passwordModal.classList.add('hidden');
             mainView.classList.add('hidden');
+            adminBtn.classList.add('hidden'); // Hide entry button while inside console
             adminView.classList.remove('hidden');
             passwordInput.value = '';
             loginError.classList.add('hidden');
-            renderLogs(); // Update visual list
+            buildSystematicDashboard();
         } else {
             loginError.classList.remove('hidden');
             passwordInput.value = '';
         }
-    }
+    };
+
+    submitPassBtn.addEventListener('click', verifyCredentials);
+    passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') verifyCredentials(); });
 
     backBtn.addEventListener('click', () => {
         adminView.classList.add('hidden');
         mainView.classList.remove('hidden');
+        adminBtn.classList.remove('hidden');
     });
 });
