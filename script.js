@@ -1,7 +1,7 @@
 // --- CONFIGURATION SETUP ---
 const ADMIN_PASSWORD = "admin123_change_me"; // Admin panel key
 const API_URL = "https://api.jsonbin.io/v3/b/6a43604ef5f4af5e2945c500"; // Your updated bin URL
-const API_MASTER_KEY = "$2a$10$YOUR_ACTUAL_KEY_HERE"; // Paste your secret key wrapper string here
+const API_MASTER_KEY = "$2a$10$lPB.nJiq6s9VfBAeHO/DD.rhW2r.uWnjDmMN83dtp/ZQAdJ5JbClm"; // Paste your secret key wrapper string here
 
 document.addEventListener("DOMContentLoaded", () => {
     // Game State Variables
