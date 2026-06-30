@@ -18,6 +18,11 @@ body {
     text-align: center;
     max-width: 400px;
     width: 90%;
+    box-sizing: border-box;
+}
+
+.admin-card {
+    max-width: 600px;
 }
 
 h1 {
@@ -26,6 +31,13 @@ h1 {
     letter-spacing: 0.5px;
     margin-bottom: 8px;
     color: #586069;
+    margin-top: 0;
+}
+
+h2 {
+    font-size: 20px;
+    margin-top: 0;
+    color: #24292e;
 }
 
 .ip-display {
@@ -34,20 +46,137 @@ h1 {
     color: #0366d6;
     margin: 20px 0;
     word-break: break-all;
-    transition: color 0.3s ease;
 }
 
 .subtitle {
     font-size: 13px;
     color: #6a737d;
     line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+/* Buttons */
+.btn {
+    background-color: #2ea44f;
+    color: white;
+    border: 1px solid rgba(27, 31, 35, 0.15);
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn:hover {
+    background-color: #2c974b;
+}
+
+.btn-secondary {
+    background-color: #fafbfc;
+    color: #24292e;
+    border-color: rgba(27, 31, 35, 0.15);
+}
+
+.btn-secondary:hover {
+    background-color: #f3f4f6;
+}
+
+/* Modals & Hidden Utilities */
+.hidden {
+    display: none !important;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 8px 12px;
+    margin: 16px 0 8px 0;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.error-msg {
+    color: #cb2431;
+    font-size: 12px;
+    text-align: left;
+    margin-bottom: 8px;
+}
+
+/* Admin Dashboard Table */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e1e4e8;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+}
+
+.admin-header h2 {
     margin: 0;
 }
 
-/* Loading animation state */
-.loading {
-    color: #959da5;
+.table-container {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+}
+
+th, td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e1e4e8;
+}
+
+th {
+    background-color: #fafbfc;
+    color: #586069;
+    font-weight: 500;
+    position: sticky;
+    top: 0;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+.loading-logs {
+    text-align: center;
+    color: #6a737d;
     font-style: italic;
+    padding: 20px;
+}
+
+.loading {
     animation: pulse 1.5s infinite ease-in-out;
 }
 
