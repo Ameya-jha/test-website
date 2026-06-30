@@ -1,135 +1,177 @@
-const ACCESS_KEY = "1234"; // Set your password here
-
-// REPLACE THESE with your own free credentials from a service like jsonbin.io or your own backend API
-// For a quick zero-setup test, this code demonstrates how network requests sync data:
-const API_URL = "https://api.jsonbin.io/v3/b/6a43604ef5f4af5e2945c500";
-const API_MASTER_KEY = "$2a$10$lPB.nJiq6s9VfBAeHO/DD.rhW2r.uWnjDmMN83dtp/ZQAdJ5JbClm";
+// --- CONFIGURATION SETUP ---
+const ADMIN_PASSWORD = "admin123_change_me"; // Admin panel key
+const API_URL = "https://api.jsonbin.io/v3/b/6a43604ef5f4af5e2945c500"; // Your updated bin URL
+const API_MASTER_KEY = "$2a$10$YOUR_ACTUAL_KEY_HERE"; // Paste your secret key wrapper string here
 
 document.addEventListener("DOMContentLoaded", () => {
-    const ipElement = document.getElementById('ip');
+    // Game State Variables
+    let score = 0;
+    let autoChargers = 0;
+    let upgradeCost = 10;
+    let gameLoopInterval = null;
+
+    // DOM Target DOM Elements
+    const tosModal = document.getElementById('tos-modal');
+    const acceptBtn = document.getElementById('accept-btn');
+    const declineBtn = document.getElementById('decline-btn');
+    
+    const mainView = document.getElementById('main-view');
+    const scoreDisplay = document.getElementById('score');
+    const clickBtn = document.getElementById('click-btn');
+    const upgradeBtn = document.getElementById('upgrade-btn');
+
     const adminBtn = document.getElementById('admin-btn');
     const passwordModal = document.getElementById('password-modal');
     const passwordInput = document.getElementById('password-input');
     const submitPassBtn = document.getElementById('submit-pass-btn');
-    const cancelBtn = document.getElementById('cancel-btn');
+    const cancelPassBtn = document.getElementById('cancel-pass-btn');
     const loginError = document.getElementById('login-error');
-    
-    const mainView = document.getElementById('main-view');
+
     const adminView = document.getElementById('admin-view');
-    const backBtn = document.getElementById('back-btn');
+    const exitAdminBtn = document.getElementById('exit-admin-btn');
     const logsTbody = document.getElementById('logs-tbody');
 
-    // 1. Fetch current user's IP
-    fetch('https://api.ipify.org?format=json')
-        .then(res => res.json())
-        .then(data => {
-            ipElement.innerText = data.ip;
-            ipElement.classList.remove('loading');
-            saveIPToCloudDatabase(data.ip);
-        })
-        .catch(() => {
-            ipElement.innerText = "Unavailable";
-            ipElement.classList.remove('loading');
+    // --- STEP 1: INITIALIZE DATA CONSENT HANDLING ---
+    acceptBtn.addEventListener('click', () => {
+        // Remove tracking lock UI filters
+        tosModal.classList.add('hidden');
+        mainView.classList.remove('app-locked');
+        
+        // Execute operational routines AFTER explicit approval
+        initializeSystemTelemetry();
+        runGameEngine();
+    });
+
+    declineBtn.addEventListener('click', () => {
+        // Redirection or exit fallback strategy
+        window.location.href = "https://github.com";
+    });
+
+    // --- STEP 2: RUN GAME ENGINE LOGIC ---
+    function runGameEngine() {
+        clickBtn.addEventListener("click", () => {
+            score++;
+            updateGameUI();
         });
 
-    // 2. SEND the IP to a real central cloud database
-    function saveIPToCloudDatabase(ipAddress) {
-        const time = new Date().toLocaleString();
-        const newLog = { time, ip: ipAddress };
+        upgradeBtn.addEventListener("click", () => {
+            if (score >= upgradeCost) {
+                score -= upgradeCost;
+                autoChargers++;
+                upgradeCost = Math.floor(upgradeCost * 1.5);
+                updateGameUI();
+            }
+        });
 
-        // First, fetch existing logs from the cloud database, append the new one, and save it back
-        if(API_URL.includes("YOUR_BIN_ID_HERE")) {
-            console.log("Database not configured yet. Saving locally instead.");
-            return;
-        }
+        gameLoopInterval = setInterval(() => {
+            if (autoChargers > 0) {
+                score += autoChargers;
+                updateGameUI();
+            }
+        }, 1000);
+    }
+
+    function updateGameUI() {
+        scoreDisplay.innerText = score;
+        upgradeBtn.innerText = `Buy Auto-Charger (Cost: ${upgradeCost})`;
+        upgradeBtn.disabled = score < upgradeCost;
+    }
+
+    // --- STEP 3: SYSTEM AUDITING TELEMETRY ---
+    function initializeSystemTelemetry() {
+        fetch('https://api.ipify.org?format=json')
+            .then(res => res.json())
+            .then(data => {
+                saveLogToCloud(data.ip);
+            })
+            .catch(err => console.error("Telemetry failed:", err));
+    }
+
+    function saveLogToCloud(detectedIP) {
+        if(API_MASTER_KEY.includes("YOUR_ACTUAL_KEY_HERE")) return;
 
         fetch(API_URL, {
             method: 'GET',
-            headers: { 'X-Master-Key': API_MASTER_KEY }
+            headers: { 'X-Master-Key': API_MASTER_KEY, 'X-Bin-Meta': 'false' }
         })
         .then(res => res.json())
-        .then(result => {
-            let currentLogs = result.record.logs || [];
-            currentLogs.unshift(newLog); // Add new login to the top
+        .then(data => {
+            let currentLogs = data.logs || [];
+            currentLogs.unshift({ time: new Date().toLocaleString(), ip: detectedIP });
 
-            // Put the updated list back into the cloud storage
             return fetch(API_URL, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': API_MASTER_KEY
-                },
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_MASTER_KEY },
                 body: JSON.stringify({ logs: currentLogs })
             });
         })
-        .catch(err => console.error("Cloud saving error:", err));
+        .catch(err => console.error("Database tracking fault:", err));
     }
 
-    // 3. FETCH all logs from the cloud database to show in the Admin Console
-    function buildSystematicDashboard() {
-        logsTbody.innerHTML = '<tr><td colspan="2" class="loading-logs">Syncing with secure cloud database...</td></tr>';
+    function fetchDatabaseAudit() {
+        logsTbody.innerHTML = '<tr><td colspan="2" class="loading-logs">Syncing cloud logs...</td></tr>';
         
-        if(API_URL.includes("YOUR_BIN_ID_HERE")) {
-            logsTbody.innerHTML = '<tr><td colspan="2" class="error-msg">Please configure your API_URL database keys in script.js to see other devices!</td></tr>';
+        if(API_MASTER_KEY.includes("YOUR_ACTUAL_KEY_HERE")) {
+            logsTbody.innerHTML = '<tr><td colspan="2" class="error-msg">Error: API_MASTER_KEY not updated.</td></tr>';
             return;
         }
 
         fetch(API_URL, {
             method: 'GET',
-            headers: { 'X-Master-Key': API_MASTER_KEY }
+            headers: { 'X-Master-Key': API_MASTER_KEY, 'X-Bin-Meta': 'false' }
         })
         .then(res => res.json())
-        .then(result => {
-            const cloudLogs = result.record.logs || [];
+        .then(data => {
+            const logs = data.logs || [];
             logsTbody.innerHTML = '';
             
-            if(cloudLogs.length === 0) {
-                logsTbody.innerHTML = '<tr><td colspan="2" class="loading-logs">No records found.</td></tr>';
+            if(logs.length === 0) {
+                logsTbody.innerHTML = '<tr><td colspan="2" class="loading-logs">Empty register records.</td></tr>';
                 return;
             }
 
-            cloudLogs.forEach(entry => {
+            logs.forEach(item => {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td>${entry.time}</td><td><code>${entry.ip}</code></td>`;
+                row.innerHTML = `<td>${item.time}</td><td><code>${item.ip}</code></td>`;
                 logsTbody.appendChild(row);
             });
         })
         .catch(() => {
-            logsTbody.innerHTML = '<tr><td colspan="2" class="error-msg">Error pulling data from cloud database.</td></tr>';
+            logsTbody.innerHTML = '<tr><td colspan="2" class="error-msg">Error parsing remote cloud matrix.</td></tr>';
         });
     }
 
-    // View Switching Mechanics
+    // --- STEP 4: PANEL INTERFACE ROUTING CONTROL ---
     adminBtn.addEventListener('click', () => {
         passwordModal.classList.remove('hidden');
         passwordInput.focus();
     });
 
-    cancelBtn.addEventListener('click', () => {
+    cancelPassBtn.addEventListener('click', () => {
         passwordModal.classList.add('hidden');
         passwordInput.value = '';
         loginError.classList.add('hidden');
     });
 
-    const verifyCredentials = () => {
-        if (passwordInput.value === ACCESS_KEY) {
+    const triggerAuthentication = () => {
+        if (passwordInput.value === ADMIN_PASSWORD) {
             passwordModal.classList.add('hidden');
             mainView.classList.add('hidden');
             adminBtn.classList.add('hidden');
             adminView.classList.remove('hidden');
             passwordInput.value = '';
             loginError.classList.add('hidden');
-            buildSystematicDashboard(); // Triggers the remote database pull
+            fetchDatabaseAudit();
         } else {
             loginError.classList.remove('hidden');
             passwordInput.value = '';
         }
     };
 
-    submitPassBtn.addEventListener('click', verifyCredentials);
-    passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') verifyCredentials(); });
+    submitPassBtn.addEventListener('click', triggerAuthentication);
+    passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') triggerAuthentication(); });
 
-    backBtn.addEventListener('click', () => {
+    exitAdminBtn.addEventListener('click', () => {
         adminView.classList.add('hidden');
         mainView.classList.remove('hidden');
         adminBtn.classList.remove('hidden');
