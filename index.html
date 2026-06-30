@@ -3,19 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>What Is My IP?</title>
-    <!-- Link to external styling -->
+    <title>IP Dashboard</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="card">
+    <!-- Main IP Display View -->
+    <div id="main-view" class="card">
         <h1>Your Public IP Address</h1>
         <div id="ip" class="ip-display loading">Locating...</div>
         <p class="subtitle">This is the public address your network uses to talk to the internet.</p>
+        
+        <button id="admin-btn" class="btn">Admin Console</button>
     </div>
 
-    <!-- Link to external behavior -->
+    <!-- Password Modal -->
+    <div id="password-modal" class="modal hidden">
+        <div class="card modal-content">
+            <h2>Enter Admin Password</h2>
+            <input type="password" id="password-input" placeholder="Enter password..." autocomplete="off">
+            <div id="login-error" class="error-msg hidden">Incorrect password!</div>
+            <div class="modal-actions">
+                <button id="cancel-btn" class="btn btn-secondary">Cancel</button>
+                <button id="submit-pass-btn" class="btn">Access</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Console View -->
+    <div id="admin-view" class="card admin-card hidden">
+        <div class="admin-header">
+            <h2>Visitor IP Logs</h2>
+            <button id="back-btn" class="btn btn-secondary">Exit Console</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>IP Address</th>
+                    </tr>
+                </thead>
+                <tbody id="logs-tbody">
+                    <!-- Logs will be populated here via JavaScript -->
+                    <tr>
+                        <td colspan="2" class="loading-logs">Loading visitor logs...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
